@@ -18,7 +18,7 @@
 
 
 #Creates working directory. Picture will be saved in this directory.
-directory="$HOME/.xkcd_wallpaper"
+directory="$HOME/xkcd_wallpaper"
 
 if [ ! -d "$directory" ]
 then
@@ -30,7 +30,7 @@ cd $directory
 # /random/comic redirects to random comic.
 #Searches the line in the html that points to the url where the actual comic is placed.
 #The image urls are of the form: http://imgs.xkcd.com/comics/.'name of comic'.(png | jpg)
-url=$(curl -sL http://dynamic.xkcd.com/random/comic/ | grep -om1 'http://imgs.xkcd.com/comics/[^.]*\.[a-z]*')
+url=$(curl -sL http://dynamic.xkcd.com/random/comic/ | grep -om1 'https://imgs.xkcd.com/comics/[^.]*\.[a-z]*')
 
 #Assuming picture format is .png. Gets the name of the image file by only matching what comes after the last forward slash.
 name_pic=$(echo $url | grep -o [^/]*\.png)
@@ -49,7 +49,8 @@ fi
 wget --output-document="$name_pic"  "$url"
 
 #Sets the desktop background
-gconftool-2 --set --type=string /desktop/gnome/background/picture_filename $(pwd)/"$name_pic"
+PID=$(pgrep gnome-session); export DBUS_SESSION_BUS_ADDRESS=$(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$PID/environ|cut -d= -f2-); gsettings set org.gnome.desktop.background picture-uri file://$(pwd)/"$name_pic"
+# gconftool-2 --set --type=string /desktop/gnome/background/picture_filename $(pwd)/"$name_pic"
 
 #For some reason, if the image is moved to fast (e.g without a wait) the background does not get set.
 sleep 1
@@ -62,3 +63,4 @@ if [ $is_png = 1 ] ; then
 else
     mv $(pwd)/"$name_pic" $(pwd)/current_xkcd_wallpaper.jpg
 fi 
+
